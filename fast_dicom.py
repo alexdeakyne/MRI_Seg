@@ -62,6 +62,8 @@ class ImageDICOM(Image):
     def from_np(cls, arr:np.array, ind, dim, px_spacing, clip_low=-700, clip_high=300):
         plane = ['axial', 'coronal', 'saggital'][dim]
         arr_slice = np.take(arr, ind, dim)[None,...]
+        clip_low = np.min(arr_slice)
+        clip_high = np.max(arr_slice)
         arr_slice = np.clip(arr_slice, clip_low, clip_high)
         arr_slice[0,0] = clip_low
         arr_slice[0,1] = clip_high
@@ -146,6 +148,13 @@ class DcmProcessor():
     def get_scan(self, study_path):
         scan, px_spacing = self.proc_scan_files(self.get_scan_files(study_path))
         return scan, px_spacing
+
+    def get_mri_mask(self, study_path):
+    	mask, px_spacing = self.proc_scan_files(self.get_mask_files(study_path))
+    	mask = np.where(mask != np.max(mask), 0, mask)
+    	#mask = np.where(mask == np.max(mask), 256, mask)
+    	return mask
+        
         
     def proc_scan_files(self, scan_files):
         """Extensible function for dealing with """
@@ -167,7 +176,8 @@ class DcmProcessor():
         max_dim = max_agree([i.shape for i in stack])
         stack = np.stack([i for i in stack if tuple(i.shape) == max_dim])
         # px_spacing should be row by column and not col by row... i assume
-        return np.clip(stack, self.clip_low, self.clip_high), np.array([slice_dist] + px_spacing[::-1])
+        #return np.clip(stack, self.clip_low, self.clip_high), np.array([slice_dist] + px_spacing[::-1])
+        return stack, np.array([slice_dist] + px_spacing[::-1])
         
 
     def delete_study_files(self, study_path):
@@ -191,7 +201,8 @@ class DcmProcessor():
         self.delete_study_files(study_path)
 
         scan, px_spacing = self.get_scan(study_path)
-        mask = self.get_mask(study_path)
+        mask = self.get_mri_mask(study_path)
+        #mask = self.get_mask(study_path)
 
         slice_nums = sum([list(range(i)) for i in scan.shape], [])
         planes = sum([n_slices*[[0,1,2][ind]] for ind, n_slices in enumerate(scan.shape)], [])
