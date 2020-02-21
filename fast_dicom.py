@@ -152,7 +152,7 @@ class DcmProcessor():
     def get_mri_mask(self, study_path):
     	mask, px_spacing = self.proc_scan_files(self.get_mask_files(study_path))
     	mask = np.where(mask != np.max(mask), 0, mask)
-    	#mask = np.where(mask == np.max(mask), 256, mask)
+    	mask = np.where(mask == np.max(mask), 1, mask)
     	return mask
         
         
