@@ -212,10 +212,10 @@ class DcmProcessor():
         new_fn = lambda slice_num, plane: f'{study_path.stem}_{plane}_{slice_num}.png'
         save_func = lambda fn, slice_num, plane: self.save_pair(fn, scan, mask, slice_num, plane, px_spacing)
         
-        df_rows = [[new_fn(slice_num, plane), plane, slice_num] + list(self.new_spacing) for slice_num, plane in zip(slice_nums, planes)]
-        new_df = pd.DataFrame(df_rows)
-        new_df.columns = self.df.columns
-        self.df = self.df.append(new_df)
+#         df_rows = [[new_fn(slice_num, plane), plane, slice_num] + list(self.new_spacing) for slice_num, plane in zip(slice_nums, planes)]
+#         new_df = pd.DataFrame(df_rows)
+#         new_df.columns = self.df.columns
+#         self.df = self.df.append(new_df)
         
         for slice_num, plane in progress_bar(zipped(slice_nums, planes)):
             fn = new_fn(slice_num, plane)
@@ -233,6 +233,7 @@ DcmProcessorCIT = create_dcm_class('DcmProcessorCIT', DcmGetterCIT, DcmProcessor
 
 def create_dataset(dcm_proc, study_paths):
     for study_path in study_paths:
+        #dcm_proc.to_files(study_path)
         try:
             dcm_proc.to_files(study_path)
         except:
